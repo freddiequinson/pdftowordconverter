@@ -11,10 +11,21 @@
         <p>Your file <strong>{{ original_filename }}</strong> has been successfully converted to {{ output_type }} format.</p>
         
         <div class="download-section">
+            {% if demo_mode %}
+            <div class="demo-notice">
+                <i class="fas fa-info-circle"></i>
+                <p>This is a demo version running on Vercel. File conversion is not available in this environment due to serverless limitations.</p>
+                <p>To use the full converter with actual file conversion, please download and run the application locally.</p>
+            </div>
+            <a href="https://github.com/freddiequinson/pdftowordconverter" class="download-btn">
+                <i class="fas fa-github"></i> Get Full Version on GitHub
+            </a>
+            {% else %}
             <a href="{{ download_url }}" class="download-btn" download="{{ suggested_filename }}">
                 <i class="fas fa-download"></i> Download {{ output_type }} File
             </a>
             <p class="download-note">Your file will be available for download for 1 hour</p>
+            {% endif %}
         </div>
         
         <div class="back-link">
