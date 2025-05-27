@@ -7,7 +7,14 @@ import time
 
 # Conversion libraries
 from pdf2docx import Converter as PDFToDocxConverter
-from docx2pdf import convert as docx_to_pdf_convert
+# For DOCX to PDF conversion (serverless-friendly)
+import docx
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER, TA_RIGHT
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -41,8 +48,56 @@ def pdf_to_docx(pdf_path, docx_path):
 
 def docx_to_pdf(docx_path, pdf_path):
     try:
-        # Convert DOCX to PDF
-        docx_to_pdf_convert(docx_path, pdf_path)
+        # Open the Word document
+        doc = docx.Document(docx_path)
+        
+        # Create a PDF document
+        pdf = SimpleDocTemplate(
+            pdf_path,
+            pagesize=letter,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=72
+        )
+        
+        # Define styles
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
+        
+        # Create a list to store PDF elements
+        elements = []
+        
+        # Process paragraphs from the Word document
+        for para in doc.paragraphs:
+            if para.text:
+                # Determine alignment
+                alignment = TA_LEFT  # Default alignment
+                if para.alignment == 1:
+                    alignment = TA_CENTER
+                elif para.alignment == 2:
+                    alignment = TA_RIGHT
+                elif para.alignment == 3:
+                    alignment = TA_JUSTIFY
+                
+                # Create a style based on alignment
+                style_name = 'Normal'
+                if para.style.name.startswith('Heading'):
+                    style_name = para.style.name
+                
+                # Use the appropriate style
+                if style_name in styles:
+                    style = styles[style_name]
+                else:
+                    style = styles['Normal']
+                    
+                # Create paragraph with proper style
+                p = Paragraph(para.text, style)
+                elements.append(p)
+                elements.append(Spacer(1, 6))
+        
+        # Build the PDF
+        pdf.build(elements)
         return True
     except Exception as e:
         print(f"Error converting DOCX to PDF: {str(e)}")
