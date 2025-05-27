@@ -22,7 +22,7 @@
             </div>
         </div>
         
-        <form action="/convert" method="post" enctype="multipart/form-data" id="upload-form">
+        <form action="{{ url_for('convert') }}" method="post" enctype="multipart/form-data" id="upload-form">
             <div class="file-upload-container">
                 <div class="file-upload-area" id="drop-area">
                     <input type="file" name="file" id="file-input" accept=".pdf,.docx" hidden>
