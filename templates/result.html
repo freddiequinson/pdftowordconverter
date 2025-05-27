@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="converter-container">
+    <div class="card result-card">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h2>Conversion Complete!</h2>
+        <p>Your file <strong>{{ original_filename }}</strong> has been successfully converted to {{ output_type }} format.</p>
+        
+        <div class="download-section">
+            <a href="{{ download_url }}" class="download-btn" download="{{ suggested_filename }}">
+                <i class="fas fa-download"></i> Download {{ output_type }} File
+            </a>
+            <p class="download-note">Your file will be available for download for 1 hour</p>
+        </div>
+        
+        <div class="back-link">
+            <a href="/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Convert Another File
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="converter-container">
+    <div class="card">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="conversion-types">
+            <div class="conversion-type active" id="pdf-to-word">
+                <i class="fas fa-file-pdf"></i> PDF to Word
+            </div>
+            <div class="conversion-type" id="word-to-pdf">
+                <i class="fas fa-file-word"></i> Word to PDF
+            </div>
+        </div>
+        
+        <form action="/convert" method="post" enctype="multipart/form-data" id="upload-form">
+            <div class="file-upload-container">
+                <div class="file-upload-area" id="drop-area">
+                    <input type="file" name="file" id="file-input" accept=".pdf,.docx" hidden>
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p class="upload-text">Drag & Drop or <span class="browse-btn">Browse</span></p>
+                    <p class="file-type-text" id="file-type-text">Accepted file: PDF</p>
+                    <p class="selected-file" id="selected-file-name"></p>
+                </div>
+            </div>
+            
+            <button type="submit" class="convert-btn">
+                <i class="fas fa-sync-alt"></i> Convert Now
+            </button>
+        </form>
+        
+        <div class="features">
+            <div class="feature">
+                <i class="fas fa-lock"></i>
+                <span>Secure Conversion</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-bolt"></i>
+                <span>Fast Processing</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-download"></i>
+                <span>Easy Download</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fas fa-file-upload"></i></div>
+                <div class="step-text">Upload your file</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fas fa-cogs"></i></div>
+                <div class="step-text">We convert it for you</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fas fa-download"></i></div>
+                <div class="step-text">Download your converted file</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pdfToWordBtn = document.getElementById('pdf-to-word');
+        const wordToPdfBtn = document.getElementById('word-to-pdf');
+        const fileInput = document.getElementById('file-input');
+        const dropArea = document.getElementById('drop-area');
+        const fileTypeText = document.getElementById('file-type-text');
+        const selectedFileName = document.getElementById('selected-file-name');
+        const browseBtn = document.querySelector('.browse-btn');
+        
+        // Default to PDF to Word conversion
+        let currentMode = 'pdf';
+        
+        // Switch between conversion types
+        pdfToWordBtn.addEventListener('click', function() {
+            pdfToWordBtn.classList.add('active');
+            wordToPdfBtn.classList.remove('active');
+            fileTypeText.textContent = 'Accepted file: PDF';
+            currentMode = 'pdf';
+            fileInput.accept = '.pdf';
+            selectedFileName.textContent = '';
+        });
+        
+        wordToPdfBtn.addEventListener('click', function() {
+            wordToPdfBtn.classList.add('active');
+            pdfToWordBtn.classList.remove('active');
+            fileTypeText.textContent = 'Accepted file: DOCX';
+            currentMode = 'docx';
+            fileInput.accept = '.docx';
+            selectedFileName.textContent = '';
+        });
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                
+                if ((currentMode === 'pdf' && fileExt === 'pdf') || 
+                    (currentMode === 'docx' && fileExt === 'docx')) {
+                    selectedFileName.textContent = file.name;
+                    dropArea.classList.add('has-file');
+                } else {
+                    alert(`Please select a ${currentMode.toUpperCase()} file for this conversion type.`);
+                    fileInput.value = '';
+                    selectedFileName.textContent = '';
+                    dropArea.classList.remove('has-file');
+                }
+            }
+        });
+        
+        // Open file dialog when clicking on browse button
+        browseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+        
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            
+            if (file) {
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                
+                if ((currentMode === 'pdf' && fileExt === 'pdf') || 
+                    (currentMode === 'docx' && fileExt === 'docx')) {
+                    fileInput.files = dt.files;
+                    selectedFileName.textContent = file.name;
+                    dropArea.classList.add('has-file');
+                } else {
+                    alert(`Please select a ${currentMode.toUpperCase()} file for this conversion type.`);
+                    selectedFileName.textContent = '';
+                    dropArea.classList.remove('has-file');
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
